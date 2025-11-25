@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { AmbientSounds } from '@/components/pomodoro/AmbientSounds';
+import { PomodoroAnalytics } from '@/components/pomodoro/PomodoroAnalytics';
 
 export default function Pomodoro() {
   const { user } = useAuth();
@@ -273,6 +274,14 @@ export default function Pomodoro() {
           </div>
         </motion.div>
       </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+      >
+        <PomodoroAnalytics />
+      </motion.div>
     </div>
   );
 }
