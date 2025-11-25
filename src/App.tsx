@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -24,10 +25,42 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Initialize theme on app load
+const initializeTheme = () => {
+  const savedTheme = localStorage.getItem('theme') || 'system';
+  const root = window.document.documentElement;
+  
+  root.classList.remove('light', 'dark');
+  
+  if (savedTheme === 'system') {
+    const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    root.classList.add(systemTheme);
+  } else {
+    root.classList.add(savedTheme);
+  }
+};
+
 const AppContent = () => {
   // Initialize mobile features
   useMobileFeatures();
   useAppStateDetection();
+
+  useEffect(() => {
+    // Initialize theme on mount
+    initializeTheme();
+    
+    // Listen for system theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => {
+      const currentTheme = localStorage.getItem('theme');
+      if (currentTheme === 'system') {
+        initializeTheme();
+      }
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   return (
     <Routes>

@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Palette } from 'lucide-react';
+import { Palette, Moon, Sun, Monitor } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { ChevronDown } from 'lucide-react';
+import { useDarkMode } from '@/hooks/useDarkMode';
+import { toast } from '@/hooks/use-toast';
 
 const accentColors = [
   { name: 'Purple', value: '#8B5CF6', hsl: '258 90% 66%' },
@@ -32,6 +34,7 @@ export function AdvancedThemeCustomization() {
   const [accentColor, setAccentColor] = useState('#8B5CF6');
   const [iconStyle, setIconStyle] = useState('default');
   const [fontStyle, setFontStyle] = useState('clean');
+  const { theme, setTheme, isDark } = useDarkMode();
 
   useEffect(() => {
     // Load saved preferences
@@ -39,9 +42,26 @@ export function AdvancedThemeCustomization() {
     const savedIcon = localStorage.getItem('userAppIconStyle');
     const savedFont = localStorage.getItem('userFontPreference');
 
-    if (savedAccent) setAccentColor(savedAccent);
+    if (savedAccent) {
+      setAccentColor(savedAccent);
+      // Re-apply saved accent color
+      const color = accentColors.find(c => c.value === savedAccent);
+      if (color) {
+        document.documentElement.style.setProperty('--primary', color.hsl);
+        document.documentElement.style.setProperty('--accent', color.hsl);
+      }
+    }
     if (savedIcon) setIconStyle(savedIcon);
-    if (savedFont) setFontStyle(savedFont);
+    if (savedFont) {
+      setFontStyle(savedFont);
+      // Re-apply saved font
+      const fontMap = {
+        clean: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+        rounded: "'Nunito', 'Quicksand', sans-serif",
+        compact: "'Roboto Condensed', 'Arial Narrow', sans-serif",
+      };
+      document.body.style.fontFamily = fontMap[savedFont as keyof typeof fontMap];
+    }
   }, []);
 
   const handleAccentChange = (value: string) => {
@@ -74,6 +94,20 @@ export function AdvancedThemeCustomization() {
     document.body.style.fontFamily = fontMap[value as keyof typeof fontMap];
   };
 
+  const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
+    setTheme(newTheme);
+    toast({
+      title: 'Theme Updated',
+      description: `Switched to ${newTheme === 'system' ? 'system preference' : newTheme + ' mode'}`,
+    });
+  };
+
+  const getThemeIcon = () => {
+    if (theme === 'system') return <Monitor className="h-4 w-4" />;
+    if (theme === 'dark') return <Moon className="h-4 w-4" />;
+    return <Sun className="h-4 w-4" />;
+  };
+
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <Card className="glass-card">
@@ -94,6 +128,46 @@ export function AdvancedThemeCustomization() {
         
         <CollapsibleContent>
           <CardContent className="space-y-6 pt-6">
+            {/* Theme Mode Selector */}
+            <div className="space-y-3">
+              <Label>Theme Mode</Label>
+              <div className="grid grid-cols-3 gap-3">
+                <Button
+                  variant={theme === 'light' ? 'default' : 'outline'}
+                  className="flex items-center justify-center gap-2"
+                  onClick={() => handleThemeChange('light')}
+                >
+                  <Sun className="h-4 w-4" />
+                  Light
+                </Button>
+                <Button
+                  variant={theme === 'dark' ? 'default' : 'outline'}
+                  className="flex items-center justify-center gap-2"
+                  onClick={() => handleThemeChange('dark')}
+                >
+                  <Moon className="h-4 w-4" />
+                  Dark
+                </Button>
+                <Button
+                  variant={theme === 'system' ? 'default' : 'outline'}
+                  className="flex items-center justify-center gap-2"
+                  onClick={() => handleThemeChange('system')}
+                >
+                  <Monitor className="h-4 w-4" />
+                  System
+                </Button>
+              </div>
+              <div className="rounded-lg bg-muted/50 p-3 text-sm flex items-center gap-2">
+                {getThemeIcon()}
+                <span className="text-muted-foreground">
+                  {theme === 'system' 
+                    ? `Following system preference (currently ${isDark ? 'dark' : 'light'})`
+                    : `Using ${theme} mode`
+                  }
+                </span>
+              </div>
+            </div>
+
             {/* Accent Color Picker */}
             <div className="space-y-3">
               <Label>Accent Color</Label>
