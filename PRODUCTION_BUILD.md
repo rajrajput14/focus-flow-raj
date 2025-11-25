@@ -94,6 +94,10 @@ This copies web assets to native projects and updates native dependencies.
 
 ## Step 4: Configure App Icons and Splash Screens
 
+✅ **Your Custom Assets Are Ready:**
+- `public/app-icon.png` - Custom "FF" logo (app icon)
+- `public/splash-screen.png` - Custom fingerprint design (splash screen)
+
 ### Option A: Automated Setup with @capacitor/assets (Recommended)
 
 1. **Install the assets tool:**
@@ -101,27 +105,31 @@ This copies web assets to native projects and updates native dependencies.
    npm install -g @capacitor/assets
    ```
 
-2. **Prepare your images:**
-   - App Icon: 1024×1024 PNG (no transparency, square)
-   - Splash Screen: 2732×2732 PNG (centered logo/design)
-
-3. **Create assets folder:**
+2. **Create assets folder and copy your custom images:**
    ```bash
    mkdir -p assets
+   cp public/app-icon.png assets/icon.png
+   cp public/splash-screen.png assets/splash.png
    ```
 
-4. **Place your images:**
-   - `assets/icon.png` (1024×1024)
-   - `assets/splash.png` (2732×2732)
-
-5. **Generate all sizes:**
+4. **Generate all sizes:**
    ```bash
    npx capacitor-assets generate
    ```
+   
+   This automatically generates all required icon and splash screen sizes for iOS and Android!
 
-This automatically generates all required icon and splash screen sizes for both platforms.
+### What Gets Generated:
 
-### Option B: Manual Setup
+**iOS:**
+- AppIcon.appiconset with all required sizes (20pt to 1024pt)
+- Splash.imageset with adaptive splash screens
+
+**Android:**
+- mipmap folders (mdpi, hdpi, xhdpi, xxhdpi, xxxhdpi)
+- drawable folders for splash screens (default, land, port)
+
+### Option B: Manual Setup (If You Prefer Manual Control)
 
 #### iOS Icons (Xcode)
 
