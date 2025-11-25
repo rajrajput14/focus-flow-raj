@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { VoiceTaskInput } from '@/components/VoiceTaskInput';
 
 export default function AI() {
   const { user } = useAuth();
@@ -155,17 +156,23 @@ export default function AI() {
           </p>
 
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="E.g., 'Call John tomorrow at 3pm' or 'Finish report by Friday'"
-                className="glass-card"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !nlLoading) {
-                    createTaskFromNL();
-                  }
-                }}
+            <div className="flex items-start gap-2">
+              <div className="flex-1 space-y-2">
+                <Input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="E.g., 'Call John tomorrow at 3pm' or 'Finish report by Friday'"
+                  className="glass-card"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !nlLoading) {
+                      createTaskFromNL();
+                    }
+                  }}
+                />
+              </div>
+              <VoiceTaskInput 
+                onTranscript={(text) => setInput(text)}
+                onAutoCreate={createTaskFromNL}
               />
             </div>
 
