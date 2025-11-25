@@ -16,6 +16,7 @@ import Tasks from "./pages/Tasks";
 import Planner from "./pages/Planner";
 import Habits from "./pages/Habits";
 import Notes from "./pages/Notes";
+import Drive from "./pages/Drive";
 import Pomodoro from "./pages/Pomodoro";
 import AI from "./pages/AI";
 import Analytics from "./pages/Analytics";
@@ -72,6 +73,7 @@ const AppContent = () => {
       <Route path="/planner" element={<ProtectedRoute><Layout><Planner /></Layout></ProtectedRoute>} />
       <Route path="/habits" element={<ProtectedRoute><Layout><Habits /></Layout></ProtectedRoute>} />
       <Route path="/notes" element={<ProtectedRoute><Layout><Notes /></Layout></ProtectedRoute>} />
+      <Route path="/drive" element={<ProtectedRoute><Layout><Drive /></Layout></ProtectedRoute>} />
       <Route path="/pomodoro" element={<ProtectedRoute><Layout><Pomodoro /></Layout></ProtectedRoute>} />
       <Route path="/calendar" element={<ProtectedRoute><Layout><Calendar /></Layout></ProtectedRoute>} />
       <Route path="/ai" element={<ProtectedRoute><Layout><AI /></Layout></ProtectedRoute>} />
