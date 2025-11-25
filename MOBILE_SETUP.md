@@ -265,9 +265,9 @@ The app now supports **automatic biometric authentication** on app launch:
 
 ## Customizing App Icons and Splash Screens
 
-Your app now includes professional app icons and splash screens in the `public/` folder:
-- `public/app-icon.png` (1024x1024) - Source app icon
-- `public/splash-screen.png` (1920x1920) - Source splash screen
+Your app now includes custom app icons and splash screens in the `public/` folder:
+- `public/app-icon.png` - Custom "FF" logo app icon (ready to use)
+- `public/splash-screen.png` - Custom fingerprint splash screen (ready to use)
 
 ### Setting Up Icons and Splash Screens
 
