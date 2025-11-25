@@ -218,10 +218,67 @@ When you're ready to publish to app stores, you need to switch from hot-reload t
 
 ---
 
+## Customizing App Icons and Splash Screens
+
+Your app now includes professional app icons and splash screens in the `public/` folder:
+- `public/app-icon.png` (1024x1024) - Source app icon
+- `public/splash-screen.png` (1920x1920) - Source splash screen
+
+### Setting Up Icons and Splash Screens
+
+#### Option 1: Using @capacitor/assets (Recommended)
+1. **Install the assets plugin**:
+   ```bash
+   npm install @capacitor/assets --save-dev
+   ```
+
+2. **Create an assets folder structure**:
+   ```bash
+   mkdir -p assets
+   cp public/app-icon.png assets/icon.png
+   cp public/splash-screen.png assets/splash.png
+   ```
+
+3. **Generate all required sizes**:
+   ```bash
+   npx capacitor-assets generate
+   ```
+   
+   This automatically creates all required icon and splash screen sizes for iOS and Android.
+
+#### Option 2: Manual Setup (For Custom Control)
+
+**For iOS (after running `npx cap add ios`):**
+1. Open the project in Xcode: `npx cap open ios`
+2. In Xcode, navigate to `App/Assets.xcassets/AppIcon.appiconset`
+3. Drag and drop `public/app-icon.png` to create all required sizes
+4. Navigate to `App/Assets.xcassets/Splash.imageset`
+5. Drag and drop `public/splash-screen.png` for the splash screen
+
+**For Android (after running `npx cap add android`):**
+1. Open the project in Android Studio: `npx cap open android`
+2. Use Android Studio's Image Asset tool:
+   - Right-click on `app` → New → Image Asset
+   - Select "Launcher Icons" 
+   - Browse to `public/app-icon.png`
+   - Generate icons for all densities
+3. For splash screens, place in `android/app/src/main/res/drawable/`
+
+### Testing Your Icons and Splash Screens
+After adding the icons and splash screens:
+```bash
+npx cap sync
+npx cap run ios   # or android
+```
+
+The new icons and splash screens will appear when you launch the app on your device.
+
+---
+
 ## Next Steps
 
 1. **Test all features** on real devices
-2. **Customize app icons** and splash screens
+2. ✅ **App icons and splash screens** - Already generated!
 3. **Configure permissions** for camera, location, etc.
 4. **Set up analytics** for mobile usage tracking
 5. **Prepare store listings** with screenshots and descriptions
