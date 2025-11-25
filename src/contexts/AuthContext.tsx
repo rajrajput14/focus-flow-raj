@@ -21,38 +21,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set up auth state listener
+    // Set up auth state listener FIRST (non-async to prevent deadlock)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
+        // Defer profile creation to prevent blocking
         if (event === 'SIGNED_IN' && session?.user) {
-          // Create profile if doesn't exist
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('user_id', session.user.id)
-            .single();
-          
-          if (!profile) {
-            await supabase.from('profiles').insert({
-              user_id: session.user.id,
-              name: session.user.email?.split('@')[0]
-            });
-          }
+          setTimeout(() => {
+            supabase
+              .from('profiles')
+              .select('id')
+              .eq('user_id', session.user.id)
+              .single()
+              .then(({ data: profile }) => {
+                if (!profile) {
+                  supabase.from('profiles').insert({
+                    user_id: session.user.id,
+                    name: session.user.email?.split('@')[0]
+                  });
+                }
+              });
+          }, 0);
         }
       }
     );
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    // THEN check for existing session with timeout protection
+    const loadingTimeout = setTimeout(() => {
       setLoading(false);
-    });
+    }, 5000);
 
-    return () => subscription.unsubscribe();
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+      })
+      .catch((error) => {
+        console.error('Auth session error:', error);
+      })
+      .finally(() => {
+        clearTimeout(loadingTimeout);
+        setLoading(false);
+      });
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(loadingTimeout);
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
