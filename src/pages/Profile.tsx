@@ -14,6 +14,7 @@ import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 import { AdvancedThemeCustomization } from '@/components/profile/AdvancedThemeCustomization';
 import { ProductivityInsightsDashboard } from '@/components/profile/ProductivityInsightsDashboard';
 import { PrivacyDataControls } from '@/components/profile/PrivacyDataControls';
+import { LanguagePreferences } from '@/components/profile/LanguagePreferences';
 
 export default function Profile() {
   const { user } = useAuth();
@@ -461,11 +462,20 @@ export default function Profile() {
           </motion.div>
         )}
 
-        {/* Advanced Theme Customization */}
+        {/* Language Preferences */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
+        >
+          <LanguagePreferences />
+        </motion.div>
+
+        {/* Advanced Theme Customization */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
         >
           <AdvancedThemeCustomization />
         </motion.div>
@@ -474,7 +484,7 @@ export default function Profile() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.45 }}
+          transition={{ delay: 0.5 }}
         >
           <ProductivityInsightsDashboard />
         </motion.div>
@@ -483,7 +493,7 @@ export default function Profile() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.55 }}
         >
           <PrivacyDataControls />
         </motion.div>
@@ -492,7 +502,7 @@ export default function Profile() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.55 }}
+        transition={{ delay: 0.6 }}
         className="flex justify-end"
       >
         <Button
