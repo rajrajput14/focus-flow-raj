@@ -72,12 +72,35 @@ export default function Analytics() {
       .eq('user_id', user.id)
       .gte('created_at', startDate.toISOString());
 
+    // Load tasks
+    const { data: tasks } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('status', 'done')
+      .gte('completed_at', startDate.toISOString());
+
+    // Load habit logs
+    const { data: habitLogs } = await supabase
+      .from('habit_logs')
+      .select('*')
+      .eq('user_id', user.id)
+      .gte('created_at', startDate.toISOString());
+
     // Calculate stats
     const totalMinutes = sessions?.reduce((acc, s) => acc + (s.duration || 0), 0) || 0;
     const totalHours = Math.round(totalMinutes / 60);
     const avgDuration = sessions?.length
       ? Math.round(totalMinutes / sessions.length)
       : 0;
+
+    // Calculate task completion rate
+    const totalTasks = tasks?.length || 0;
+    const completedTasks = tasks?.filter(t => t.status === 'done').length || 0;
+    const taskCompletionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+    // Calculate habit completion
+    const habitCompletions = habitLogs?.length || 0;
 
     setStats({
       totalFocusHours: totalHours,
@@ -86,19 +109,43 @@ export default function Analytics() {
       avgSessionDuration: avgDuration,
     });
 
-    // Generate daily data for line chart
-    const dailyMap = new Map<string, number>();
+    // Generate daily data for line chart (include habits and tasks)
+    const dailyMap = new Map<string, { hours: number; tasks: number; habits: number }>();
+    
     sessions?.forEach((session) => {
       const date = new Date(session.created_at).toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
       });
-      dailyMap.set(date, (dailyMap.get(date) || 0) + (session.duration || 0) / 60);
+      const existing = dailyMap.get(date) || { hours: 0, tasks: 0, habits: 0 };
+      dailyMap.set(date, { ...existing, hours: existing.hours + (session.duration || 0) / 60 });
     });
 
-    const dailyChartData = Array.from(dailyMap.entries()).map(([date, hours]) => ({
+    tasks?.forEach((task) => {
+      if (task.completed_at) {
+        const date = new Date(task.completed_at).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+        });
+        const existing = dailyMap.get(date) || { hours: 0, tasks: 0, habits: 0 };
+        dailyMap.set(date, { ...existing, tasks: existing.tasks + 1 });
+      }
+    });
+
+    habitLogs?.forEach((log) => {
+      const date = new Date(log.created_at).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      });
+      const existing = dailyMap.get(date) || { hours: 0, tasks: 0, habits: 0 };
+      dailyMap.set(date, { ...existing, habits: existing.habits + 1 });
+    });
+
+    const dailyChartData = Array.from(dailyMap.entries()).map(([date, data]) => ({
       date,
-      hours: Math.round(hours * 10) / 10,
+      hours: Math.round(data.hours * 10) / 10,
+      tasks: data.tasks,
+      habits: data.habits,
     }));
 
     setDailyData(dailyChartData);
@@ -138,8 +185,9 @@ export default function Analytics() {
     );
 
     const newInsights = [
-      `You tend to scroll most at ${peakHour.hour}:00.`,
+      `You completed ${totalTasks} tasks and ${habitCompletions} habit check-ins in this period.`,
       `Your highest focus time is between ${peakHour.hour}:00–${peakHour.hour + 1}:00.`,
+      `Task completion rate: ${taskCompletionRate}%. ${taskCompletionRate < 70 ? 'Try breaking tasks into smaller subtasks!' : 'Great work!'}`,
       'Try enabling Focus Mode during your distracted hours.',
     ];
 
