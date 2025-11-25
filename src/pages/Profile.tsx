@@ -11,6 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { toast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useBiometricAuth } from '@/hooks/useBiometricAuth';
+import { AdvancedThemeCustomization } from '@/components/profile/AdvancedThemeCustomization';
+import { ProductivityInsightsDashboard } from '@/components/profile/ProductivityInsightsDashboard';
+import { PrivacyDataControls } from '@/components/profile/PrivacyDataControls';
 
 export default function Profile() {
   const { user } = useAuth();
@@ -457,12 +460,39 @@ export default function Profile() {
             </Card>
           </motion.div>
         )}
+
+        {/* Advanced Theme Customization */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <AdvancedThemeCustomization />
+        </motion.div>
+
+        {/* Productivity Insights Dashboard */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+        >
+          <ProductivityInsightsDashboard />
+        </motion.div>
+
+        {/* Privacy & Data Controls */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <PrivacyDataControls />
+        </motion.div>
       </div>
 
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
+        transition={{ delay: 0.55 }}
         className="flex justify-end"
       >
         <Button
