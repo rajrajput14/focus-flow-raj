@@ -1,0 +1,53 @@
+{
+  "common": {
+    "save": "थि",
+    "cancel": "नाथाय",
+    "delete": "खौ",
+    "edit": "सुजुगो",
+    "add": "दावगो",
+    "search": "नागिरगो",
+    "loading": "लोड होनांगौ...",
+    "error": "गोलाव",
+    "success": "जिबां",
+    "confirm": "मोजांनाय",
+    "back": "उनथाव",
+    "next": "उननाय",
+    "close": "बन्द",
+    "view": "नागिरनाय",
+    "export": "एक्सपोर्ट",
+    "import": "इम्पोर्ट"
+  },
+  "nav": {
+    "dashboard": "डेसबोर्ड",
+    "tasks": "हाबा",
+    "habits": "गोहोम",
+    "notes": "नोट",
+    "calendar": "केलेन्डर",
+    "pomodoro": "पोमोडोरो",
+    "planner": "फ्लान",
+    "analytics": "बिसलेसन",
+    "ai": "AI मदद",
+    "profile": "प्रोफाइल",
+    "logout": "लगआउट"
+  },
+  "profile": {
+    "title": "प्रोफाइल सेटिं",
+    "subtitle": "नोथाङै खाता आरो गावनि खालामनि जायगा सायगो",
+    "personalInfo": "गावनि खोन्थाय",
+    "name": "मुं",
+    "email": "ईमेल",
+    "saveChanges": "सुजुबायनायखौ थिनाय",
+    "saving": "थिनांगौ..."
+  },
+  "language": {
+    "title": "राव खालाम",
+    "description": "गासै भारतीय रावफोरनिफ्राय नोथाङै खालामा राव सायनाय",
+    "current": "दानो राव",
+    "search": "राव नागिरनाय",
+    "select": "राव सायनाय"
+  },
+  "toast": {
+    "languageUpdated": "राव अफदेट होबाय",
+    "languageChanged": "राव {{language}} आव सुजुबाय"
+  }
+}
