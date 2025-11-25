@@ -114,25 +114,37 @@ export type Database = {
       }
       habits: {
         Row: {
+          category: string | null
+          color: string | null
           created_at: string | null
           frequency: string
+          icon: string | null
           id: string
+          notes: string | null
           streak: number | null
           title: string
           user_id: string
         }
         Insert: {
+          category?: string | null
+          color?: string | null
           created_at?: string | null
           frequency?: string
+          icon?: string | null
           id?: string
+          notes?: string | null
           streak?: number | null
           title: string
           user_id: string
         }
         Update: {
+          category?: string | null
+          color?: string | null
           created_at?: string | null
           frequency?: string
+          icon?: string | null
           id?: string
+          notes?: string | null
           streak?: number | null
           title?: string
           user_id?: string
@@ -232,6 +244,39 @@ export type Database = {
         }
         Relationships: []
       }
+      reminders: {
+        Row: {
+          created_at: string | null
+          days_of_week: number[] | null
+          enabled: boolean | null
+          entity_id: string
+          entity_type: string
+          id: string
+          reminder_time: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          days_of_week?: number[] | null
+          enabled?: boolean | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          reminder_time: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          days_of_week?: number[] | null
+          enabled?: boolean | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          reminder_time?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       scroll_breaks: {
         Row: {
           created_at: string
@@ -256,41 +301,154 @@ export type Database = {
         }
         Relationships: []
       }
+      subtasks: {
+        Row: {
+          completed: boolean | null
+          created_at: string | null
+          display_order: number | null
+          id: string
+          task_id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          task_id: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          task_id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subtasks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
+          attachments: string[] | null
+          board_status: string | null
+          category: string | null
+          completed_at: string | null
           created_at: string | null
           description: string | null
           display_order: number | null
           due_date: string | null
           id: string
+          priority: string | null
           recurring_rule: string | null
           scheduled_on: string | null
           status: string
+          tags: string[] | null
+          time_estimate: number | null
           title: string
           user_id: string
         }
         Insert: {
+          attachments?: string[] | null
+          board_status?: string | null
+          category?: string | null
+          completed_at?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
           due_date?: string | null
           id?: string
+          priority?: string | null
           recurring_rule?: string | null
           scheduled_on?: string | null
           status?: string
+          tags?: string[] | null
+          time_estimate?: number | null
           title: string
           user_id: string
         }
         Update: {
+          attachments?: string[] | null
+          board_status?: string | null
+          category?: string | null
+          completed_at?: string | null
           created_at?: string | null
           description?: string | null
           display_order?: number | null
           due_date?: string | null
           id?: string
+          priority?: string | null
           recurring_rule?: string | null
           scheduled_on?: string | null
           status?: string
+          tags?: string[] | null
+          time_estimate?: number | null
           title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_badges: {
+        Row: {
+          badge_type: string
+          earned_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          badge_type: string
+          earned_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          badge_type?: string
+          earned_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_xp: {
+        Row: {
+          created_at: string | null
+          habits_completed: number | null
+          id: string
+          level: number | null
+          tasks_completed: number | null
+          total_xp: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          habits_completed?: number | null
+          id?: string
+          level?: number | null
+          tasks_completed?: number | null
+          total_xp?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          habits_completed?: number | null
+          id?: string
+          level?: number | null
+          tasks_completed?: number | null
+          total_xp?: number | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []

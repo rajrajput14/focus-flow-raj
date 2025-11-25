@@ -31,6 +31,7 @@ const menuItems = [
   { title: 'Habits', url: '/habits', icon: Target },
   { title: 'Notes', url: '/notes', icon: FileText },
   { title: 'Pomodoro', url: '/pomodoro', icon: Timer },
+  { title: 'Calendar', url: '/calendar', icon: Calendar },
   { title: 'AI Suggestions', url: '/ai', icon: Sparkles },
   { title: 'Analytics', url: '/analytics', icon: BarChart3 },
   { title: 'Profile', url: '/profile', icon: User },

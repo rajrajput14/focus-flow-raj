@@ -17,17 +17,39 @@ interface Task {
   due_date: string | null;
   scheduled_on: string | null;
   recurring_rule: string | null;
+  priority: string;
+  tags: string[];
+  category: string | null;
+  time_estimate: number | null;
+  board_status: string;
+  completed_at: string | null;
+}
+
+interface Subtask {
+  id: string;
+  task_id: string;
+  title: string;
+  completed: boolean;
+  display_order: number;
 }
 
 export default function Tasks() {
   const { user } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [subtasks, setSubtasks] = useState<Record<string, Subtask[]>>({});
   const [open, setOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
     scheduledOn: '',
+    priority: 'medium',
+    category: '',
+    timeEstimate: 0,
+    tags: [] as string[],
   });
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const [expandedTask, setExpandedTask] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -48,6 +70,22 @@ export default function Tasks() {
       toast.error('Failed to load tasks');
     } else {
       setTasks(data || []);
+      // Load subtasks for each task
+      data?.forEach(task => loadSubtasks(task.id));
+    }
+  };
+
+  const loadSubtasks = async (taskId: string) => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('subtasks')
+      .select('*')
+      .eq('task_id', taskId)
+      .order('display_order');
+
+    if (!error && data) {
+      setSubtasks(prev => ({ ...prev, [taskId]: data }));
     }
   };
 
@@ -57,35 +95,122 @@ export default function Tasks() {
       return;
     }
 
-    const { error } = await supabase.from('tasks').insert({
+    const { data, error } = await supabase.from('tasks').insert({
       user_id: user.id,
       title: newTask.title,
       description: newTask.description || null,
       scheduled_on: newTask.scheduledOn || null,
       status: 'pending',
-    });
+      priority: newTask.priority,
+      category: newTask.category || null,
+      time_estimate: newTask.timeEstimate || null,
+      tags: newTask.tags,
+      board_status: 'todo',
+    }).select();
 
     if (error) {
       toast.error('Failed to create task');
     } else {
-      toast.success('Task created!');
-      setNewTask({ title: '', description: '', scheduledOn: '' });
+      toast.success('Task created! +10 XP');
+      await awardXP(10, 'task');
+      setNewTask({ title: '', description: '', scheduledOn: '', priority: 'medium', category: '', timeEstimate: 0, tags: [] });
       setOpen(false);
       loadTasks();
     }
   };
 
+  const awardXP = async (xp: number, type: 'task' | 'habit') => {
+    if (!user) return;
+
+    const { data: existing } = await supabase
+      .from('user_xp')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (existing) {
+      const newTotalXP = existing.total_xp + xp;
+      const newLevel = Math.floor(newTotalXP / 100) + 1;
+      await supabase
+        .from('user_xp')
+        .update({
+          total_xp: newTotalXP,
+          level: newLevel,
+          tasks_completed: type === 'task' ? existing.tasks_completed + 1 : existing.tasks_completed,
+          habits_completed: type === 'habit' ? existing.habits_completed + 1 : existing.habits_completed,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('user_id', user.id);
+    } else {
+      await supabase.from('user_xp').insert({
+        user_id: user.id,
+        total_xp: xp,
+        level: 1,
+        tasks_completed: type === 'task' ? 1 : 0,
+        habits_completed: type === 'habit' ? 1 : 0,
+      });
+    }
+  };
+
   const toggleTask = async (taskId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'done' ? 'pending' : 'done';
+    const completedAt = newStatus === 'done' ? new Date().toISOString() : null;
 
     const { error } = await supabase
       .from('tasks')
-      .update({ status: newStatus })
+      .update({ 
+        status: newStatus,
+        completed_at: completedAt,
+      })
       .eq('id', taskId);
 
     if (error) {
       toast.error('Failed to update task');
     } else {
+      if (newStatus === 'done') {
+        toast.success('Task completed! +20 XP');
+        await awardXP(20, 'task');
+      }
+      loadTasks();
+    }
+  };
+
+  const addSubtask = async (taskId: string) => {
+    if (!user || !newSubtaskTitle.trim()) return;
+
+    const { error } = await supabase.from('subtasks').insert({
+      task_id: taskId,
+      user_id: user.id,
+      title: newSubtaskTitle,
+      completed: false,
+    });
+
+    if (error) {
+      toast.error('Failed to add subtask');
+    } else {
+      setNewSubtaskTitle('');
+      loadSubtasks(taskId);
+    }
+  };
+
+  const toggleSubtask = async (subtaskId: string, taskId: string, completed: boolean) => {
+    const { error } = await supabase
+      .from('subtasks')
+      .update({ completed: !completed })
+      .eq('id', subtaskId);
+
+    if (!error) {
+      loadSubtasks(taskId);
+    }
+  };
+
+  const moveTask = async (taskId: string, newStatus: string) => {
+    const { error } = await supabase
+      .from('tasks')
+      .update({ board_status: newStatus })
+      .eq('id', taskId);
+
+    if (!error) {
       loadTasks();
     }
   };
@@ -101,6 +226,80 @@ export default function Tasks() {
     }
   };
 
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'text-red-500 border-red-500';
+      case 'medium': return 'text-yellow-500 border-yellow-500';
+      case 'low': return 'text-green-500 border-green-500';
+      default: return 'text-muted-foreground border-border';
+    }
+  };
+
+  const renderKanbanView = () => {
+    const columns = [
+      { id: 'todo', title: 'To Do', tasks: tasks.filter(t => t.board_status === 'todo') },
+      { id: 'in_progress', title: 'In Progress', tasks: tasks.filter(t => t.board_status === 'in_progress') },
+      { id: 'done', title: 'Done', tasks: tasks.filter(t => t.board_status === 'done') },
+    ];
+
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {columns.map((column) => (
+          <div key={column.id} className="flex flex-col">
+            <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+              {column.title}
+              <span className="text-sm bg-primary/20 px-2 py-1 rounded">{column.tasks.length}</span>
+            </h3>
+            <div className="space-y-3 flex-1">
+              {column.tasks.map((task) => (
+                <motion.div
+                  key={task.id}
+                  layout
+                  className="glass-card rounded-xl p-4 cursor-pointer hover:shadow-lg transition-all"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-semibold">{task.title}</h4>
+                    <div className="flex gap-1">
+                      {column.id !== 'todo' && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => moveTask(task.id, 'todo')}
+                        >
+                          ←
+                        </Button>
+                      )}
+                      {column.id !== 'done' && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => moveTask(task.id, column.id === 'todo' ? 'in_progress' : 'done')}
+                        >
+                          →
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  {task.description && (
+                    <p className="text-sm text-muted-foreground mb-2">{task.description}</p>
+                  )}
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className={`px-2 py-1 rounded border ${getPriorityColor(task.priority)}`}>
+                      {task.priority}
+                    </span>
+                    {task.category && (
+                      <span className="px-2 py-1 rounded bg-muted">{task.category}</span>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <motion.div
@@ -113,7 +312,21 @@ export default function Tasks() {
           <p className="text-muted-foreground">Manage your tasks and to-dos</p>
         </div>
 
-        <Dialog open={open} onOpenChange={setOpen}>
+        <div className="flex gap-2">
+          <Button
+            variant={viewMode === 'list' ? 'default' : 'outline'}
+            onClick={() => setViewMode('list')}
+          >
+            List
+          </Button>
+          <Button
+            variant={viewMode === 'kanban' ? 'default' : 'outline'}
+            onClick={() => setViewMode('kanban')}
+          >
+            Kanban
+          </Button>
+          
+          <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button className="gradient-primary gap-2 text-white">
               <Plus className="h-4 w-4" />
@@ -143,6 +356,38 @@ export default function Tasks() {
                   className="glass-card"
                 />
               </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Priority</label>
+                  <select
+                    value={newTask.priority}
+                    onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
+                    className="w-full p-2 rounded-lg glass-card"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Time Estimate (min)</label>
+                  <Input
+                    type="number"
+                    value={newTask.timeEstimate}
+                    onChange={(e) => setNewTask({ ...newTask, timeEstimate: parseInt(e.target.value) || 0 })}
+                    className="glass-card"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Category</label>
+                <Input
+                  value={newTask.category}
+                  onChange={(e) => setNewTask({ ...newTask, category: e.target.value })}
+                  placeholder="Work, Personal, Study, etc."
+                  className="glass-card"
+                />
+              </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Schedule for</label>
                 <Input
@@ -158,70 +403,130 @@ export default function Tasks() {
             </div>
           </DialogContent>
         </Dialog>
+        </div>
       </motion.div>
 
-      <div className="grid gap-4">
-        {tasks.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="glass-card rounded-2xl p-12 text-center"
-          >
-            <p className="text-muted-foreground">No tasks yet. Create your first task to get started!</p>
-          </motion.div>
-        ) : (
-          tasks.map((task, index) => (
+      {viewMode === 'kanban' ? (
+        renderKanbanView()
+      ) : (
+        <div className="grid gap-4">
+          {tasks.length === 0 ? (
             <motion.div
-              key={task.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="glass-card glass-card-hover rounded-2xl p-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="glass-card rounded-2xl p-12 text-center"
             >
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex flex-1 items-start gap-4">
-                  <button
-                    onClick={() => toggleTask(task.id, task.status)}
-                    className={`mt-1 flex h-6 w-6 items-center justify-center rounded-lg border-2 transition-all ${
-                      task.status === 'done'
-                        ? 'border-primary bg-primary'
-                        : 'border-muted-foreground/30 hover:border-primary'
-                    }`}
-                  >
-                    {task.status === 'done' && <Check className="h-4 w-4 text-white" />}
-                  </button>
-                  <div className="flex-1">
-                    <h3
-                      className={`text-lg font-semibold ${
-                        task.status === 'done' ? 'text-muted-foreground line-through' : ''
+              <p className="text-muted-foreground">No tasks yet. Create your first task to get started!</p>
+            </motion.div>
+          ) : (
+            tasks.map((task, index) => (
+              <motion.div
+                key={task.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="glass-card glass-card-hover rounded-2xl p-6"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex flex-1 items-start gap-4">
+                    <button
+                      onClick={() => toggleTask(task.id, task.status)}
+                      className={`mt-1 flex h-6 w-6 items-center justify-center rounded-lg border-2 transition-all ${
+                        task.status === 'done'
+                          ? 'border-primary bg-primary'
+                          : 'border-muted-foreground/30 hover:border-primary'
                       }`}
                     >
-                      {task.title}
-                    </h3>
-                    {task.description && (
-                      <p className="mt-1 text-sm text-muted-foreground">{task.description}</p>
-                    )}
-                    {task.scheduled_on && (
-                      <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-                        <Calendar className="h-3 w-3" />
-                        {new Date(task.scheduled_on).toLocaleString()}
+                      {task.status === 'done' && <Check className="h-4 w-4 text-white" />}
+                    </button>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3
+                          className={`text-lg font-semibold ${
+                            task.status === 'done' ? 'text-muted-foreground line-through' : ''
+                          }`}
+                        >
+                          {task.title}
+                        </h3>
+                        <span className={`text-xs px-2 py-1 rounded border ${getPriorityColor(task.priority)}`}>
+                          {task.priority}
+                        </span>
+                        {task.category && (
+                          <span className="text-xs px-2 py-1 rounded bg-muted">{task.category}</span>
+                        )}
                       </div>
-                    )}
+                      {task.description && (
+                        <p className="mt-1 text-sm text-muted-foreground">{task.description}</p>
+                      )}
+                      {task.scheduled_on && (
+                        <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+                          <Calendar className="h-3 w-3" />
+                          {new Date(task.scheduled_on).toLocaleString()}
+                        </div>
+                      )}
+                      {task.time_estimate && (
+                        <div className="mt-1 text-xs text-muted-foreground">
+                          Estimated: {task.time_estimate} min
+                        </div>
+                      )}
+                      
+                      {/* Subtasks Section */}
+                      {expandedTask === task.id && (
+                        <div className="mt-4 space-y-2">
+                          <h4 className="text-sm font-semibold">Subtasks</h4>
+                          {subtasks[task.id]?.map((subtask) => (
+                            <div key={subtask.id} className="flex items-center gap-2">
+                              <button
+                                onClick={() => toggleSubtask(subtask.id, task.id, subtask.completed)}
+                                className={`flex h-4 w-4 items-center justify-center rounded border-2 ${
+                                  subtask.completed ? 'bg-primary border-primary' : 'border-muted-foreground/30'
+                                }`}
+                              >
+                                {subtask.completed && <Check className="h-3 w-3 text-white" />}
+                              </button>
+                              <span className={subtask.completed ? 'line-through text-muted-foreground' : ''}>
+                                {subtask.title}
+                              </span>
+                            </div>
+                          ))}
+                          <div className="flex gap-2">
+                            <Input
+                              placeholder="Add subtask"
+                              value={newSubtaskTitle}
+                              onChange={(e) => setNewSubtaskTitle(e.target.value)}
+                              className="glass-card text-sm"
+                            />
+                            <Button size="sm" onClick={() => addSubtask(task.id)}>
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setExpandedTask(expandedTask === task.id ? null : task.id)}
+                        className="mt-2"
+                      >
+                        {expandedTask === task.id ? 'Hide' : 'Show'} Subtasks
+                      </Button>
+                    </div>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => deleteTask(task.id)}
+                    className="text-muted-foreground hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => deleteTask(task.id)}
-                  className="text-muted-foreground hover:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </motion.div>
-          ))
-        )}
-      </div>
+              </motion.div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }

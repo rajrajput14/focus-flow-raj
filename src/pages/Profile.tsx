@@ -26,6 +26,13 @@ export default function Profile() {
     notification_frequency: 2,
     theme: 'auto',
   });
+  const [xpData, setXpData] = useState({
+    total_xp: 0,
+    level: 1,
+    tasks_completed: 0,
+    habits_completed: 0,
+  });
+  const [badges, setBadges] = useState<any[]>([]);
 
   useEffect(() => {
     if (user) {
@@ -60,6 +67,25 @@ export default function Profile() {
         theme: data.theme || 'auto',
       });
     }
+
+    // Load XP data
+    const { data: xp } = await supabase
+      .from('user_xp')
+      .select('*')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (xp) {
+      setXpData(xp);
+    }
+
+    // Load badges
+    const { data: badgeData } = await supabase
+      .from('user_badges')
+      .select('*')
+      .eq('user_id', user.id);
+
+    setBadges(badgeData || []);
   };
 
   const handleChange = (field: string, value: any) => {
@@ -133,6 +159,75 @@ export default function Profile() {
       </motion.div>
 
       <div className="grid gap-6">
+        {/* Gamification Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+        >
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Level & Progress
+              </CardTitle>
+              <CardDescription>Your productivity achievements</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Level</p>
+                  <p className="text-3xl font-bold">{xpData.level}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Total XP</p>
+                  <p className="text-2xl font-bold">{xpData.total_xp}</p>
+                </div>
+              </div>
+              
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span>Progress to Level {xpData.level + 1}</span>
+                  <span>{xpData.total_xp % 100}/100 XP</span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-primary to-accent transition-all"
+                    style={{ width: `${(xpData.total_xp % 100)}%` }}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                <div className="text-center p-3 rounded-lg bg-muted/50">
+                  <p className="text-2xl font-bold">{xpData.tasks_completed}</p>
+                  <p className="text-xs text-muted-foreground">Tasks Completed</p>
+                </div>
+                <div className="text-center p-3 rounded-lg bg-muted/50">
+                  <p className="text-2xl font-bold">{xpData.habits_completed}</p>
+                  <p className="text-xs text-muted-foreground">Habits Completed</p>
+                </div>
+              </div>
+
+              {badges.length > 0 && (
+                <div>
+                  <p className="text-sm font-medium mb-2">Badges Earned</p>
+                  <div className="flex flex-wrap gap-2">
+                    {badges.map((badge) => (
+                      <div
+                        key={badge.id}
+                        className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm font-medium"
+                      >
+                        🏆 {badge.badge_type.replace(/_/g, ' ')}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
         {/* Personal Info */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
