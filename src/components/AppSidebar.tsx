@@ -8,7 +8,8 @@ import {
   Sparkles,
   LogOut,
   User,
-  BarChart3
+  BarChart3,
+  Cloud
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,6 +31,7 @@ const menuItems = [
   { title: 'Daily Planner', url: '/planner', icon: Calendar },
   { title: 'Habits', url: '/habits', icon: Target },
   { title: 'Notes', url: '/notes', icon: FileText },
+  { title: 'Drive', url: '/drive', icon: Cloud },
   { title: 'Pomodoro', url: '/pomodoro', icon: Timer },
   { title: 'Calendar', url: '/calendar', icon: Calendar },
   { title: 'AI Suggestions', url: '/ai', icon: Sparkles },
