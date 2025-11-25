@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronDown } from 'lucide-react';
 import { useDarkMode } from '@/hooks/useDarkMode';
 import { toast } from '@/hooks/use-toast';
+import { useTranslation } from 'react-i18next';
 
 const accentColors = [
   { name: 'Purple', value: '#8B5CF6', hsl: '258 90% 66%' },
@@ -30,6 +31,7 @@ const fontStyles = [
 ];
 
 export function AdvancedThemeCustomization() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [accentColor, setAccentColor] = useState('#8B5CF6');
   const [iconStyle, setIconStyle] = useState('default');
@@ -97,8 +99,10 @@ export function AdvancedThemeCustomization() {
   const handleThemeChange = (newTheme: 'light' | 'dark' | 'system') => {
     setTheme(newTheme);
     toast({
-      title: 'Theme Updated',
-      description: `Switched to ${newTheme === 'system' ? 'system preference' : newTheme + ' mode'}`,
+      title: t('toast.themeUpdated'),
+      description: t('toast.themeSwitched', { 
+        theme: newTheme === 'system' ? t('theme.system') : newTheme === 'dark' ? t('theme.dark') : t('theme.light')
+      }),
     });
   };
 
@@ -116,13 +120,13 @@ export function AdvancedThemeCustomization() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Palette className="h-5 w-5 text-primary" />
-                <CardTitle>Advanced Theme Customization</CardTitle>
+                <CardTitle>{t('theme.title')}</CardTitle>
               </div>
               <ChevronDown
                 className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''}`}
               />
             </div>
-            <CardDescription>Personalize colors, icons, and fonts</CardDescription>
+            <CardDescription>{t('theme.description')}</CardDescription>
           </CardHeader>
         </CollapsibleTrigger>
         
@@ -130,7 +134,7 @@ export function AdvancedThemeCustomization() {
           <CardContent className="space-y-6 pt-6">
             {/* Theme Mode Selector */}
             <div className="space-y-3">
-              <Label>Theme Mode</Label>
+              <Label>{t('theme.mode')}</Label>
               <div className="grid grid-cols-3 gap-3">
                 <Button
                   variant={theme === 'light' ? 'default' : 'outline'}
@@ -138,7 +142,7 @@ export function AdvancedThemeCustomization() {
                   onClick={() => handleThemeChange('light')}
                 >
                   <Sun className="h-4 w-4" />
-                  Light
+                  {t('theme.light')}
                 </Button>
                 <Button
                   variant={theme === 'dark' ? 'default' : 'outline'}
@@ -146,7 +150,7 @@ export function AdvancedThemeCustomization() {
                   onClick={() => handleThemeChange('dark')}
                 >
                   <Moon className="h-4 w-4" />
-                  Dark
+                  {t('theme.dark')}
                 </Button>
                 <Button
                   variant={theme === 'system' ? 'default' : 'outline'}
@@ -154,15 +158,15 @@ export function AdvancedThemeCustomization() {
                   onClick={() => handleThemeChange('system')}
                 >
                   <Monitor className="h-4 w-4" />
-                  System
+                  {t('theme.system')}
                 </Button>
               </div>
               <div className="rounded-lg bg-muted/50 p-3 text-sm flex items-center gap-2">
                 {getThemeIcon()}
                 <span className="text-muted-foreground">
                   {theme === 'system' 
-                    ? `Following system preference (currently ${isDark ? 'dark' : 'light'})`
-                    : `Using ${theme} mode`
+                    ? t('theme.systemPreference', { mode: isDark ? t('theme.dark') : t('theme.light') })
+                    : t('theme.usingMode', { mode: theme === 'dark' ? t('theme.dark') : t('theme.light') })
                   }
                 </span>
               </div>
@@ -170,7 +174,7 @@ export function AdvancedThemeCustomization() {
 
             {/* Accent Color Picker */}
             <div className="space-y-3">
-              <Label>Accent Color</Label>
+              <Label>{t('theme.accentColor')}</Label>
               <div className="grid grid-cols-5 gap-3">
                 {accentColors.map((color) => (
                   <button
@@ -199,7 +203,7 @@ export function AdvancedThemeCustomization() {
 
             {/* App Icon Style */}
             <div className="space-y-3">
-              <Label htmlFor="icon-style">App Icon Style (for mobile builds)</Label>
+              <Label htmlFor="icon-style">{t('theme.iconStyle')}</Label>
               <Select value={iconStyle} onValueChange={handleIconStyleChange}>
                 <SelectTrigger id="icon-style">
                   <SelectValue />
@@ -221,7 +225,7 @@ export function AdvancedThemeCustomization() {
 
             {/* Font Style Selector */}
             <div className="space-y-3">
-              <Label htmlFor="font-style">Font Style</Label>
+              <Label htmlFor="font-style">{t('theme.fontStyle')}</Label>
               <Select value={fontStyle} onValueChange={handleFontStyleChange}>
                 <SelectTrigger id="font-style">
                   <SelectValue />
@@ -238,7 +242,7 @@ export function AdvancedThemeCustomization() {
                 fontFamily: fontStyle === 'rounded' ? "'Comic Sans MS', cursive" : 
                            fontStyle === 'compact' ? "'Arial Narrow', sans-serif" : 'inherit'
               }}>
-                Preview: The quick brown fox jumps over the lazy dog
+                {t('theme.preview')}
               </div>
             </div>
           </CardContent>

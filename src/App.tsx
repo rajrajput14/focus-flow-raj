@@ -22,6 +22,7 @@ import Analytics from "./pages/Analytics";
 import Profile from "./pages/Profile";
 import Calendar from "./pages/Calendar";
 import NotFound from "./pages/NotFound";
+import './i18n/config';
 
 const queryClient = new QueryClient();
 

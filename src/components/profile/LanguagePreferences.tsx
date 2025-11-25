@@ -7,6 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { ChevronDown } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
+import { useTranslation } from 'react-i18next';
 
 const indianLanguages = [
   { code: 'en', name: 'English', nativeName: 'English' },
@@ -35,6 +36,7 @@ const indianLanguages = [
 ];
 
 export function LanguagePreferences() {
+  const { t, i18n } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [searchQuery, setSearchQuery] = useState('');
@@ -44,20 +46,24 @@ export function LanguagePreferences() {
     const savedLanguage = localStorage.getItem('userLanguage') || 'en';
     setSelectedLanguage(savedLanguage);
     
-    // Apply language to document
+    // Apply language to document and i18n
     document.documentElement.lang = savedLanguage;
-  }, []);
+    i18n.changeLanguage(savedLanguage);
+  }, [i18n]);
 
   const handleLanguageChange = (languageCode: string) => {
     setSelectedLanguage(languageCode);
     localStorage.setItem('userLanguage', languageCode);
     document.documentElement.lang = languageCode;
+    i18n.changeLanguage(languageCode);
 
     const language = indianLanguages.find(lang => lang.code === languageCode);
     
     toast({
-      title: 'Language Updated',
-      description: `Language changed to ${language?.name} (${language?.nativeName})`,
+      title: t('toast.languageUpdated'),
+      description: t('toast.languageChanged', { 
+        language: `${language?.name} (${language?.nativeName})` 
+      }),
     });
   };
 
@@ -76,14 +82,14 @@ export function LanguagePreferences() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Globe className="h-5 w-5 text-primary" />
-                <CardTitle>Language Preferences</CardTitle>
+                <CardTitle>{t('language.title')}</CardTitle>
               </div>
               <ChevronDown
                 className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''}`}
               />
             </div>
             <CardDescription>
-              Choose your preferred language from all Indian languages
+              {t('language.description')}
             </CardDescription>
           </CardHeader>
         </CollapsibleTrigger>
@@ -94,7 +100,7 @@ export function LanguagePreferences() {
             <div className="rounded-lg bg-primary/10 p-4 border border-primary/20">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Current Language</p>
+                  <p className="text-sm text-muted-foreground">{t('language.current')}</p>
                   <p className="text-xl font-semibold text-primary">
                     {selectedLang?.name}
                   </p>
@@ -108,10 +114,10 @@ export function LanguagePreferences() {
 
             {/* Search Box */}
             <div className="space-y-2">
-              <Label htmlFor="language-search">Search Languages</Label>
+              <Label htmlFor="language-search">{t('language.search')}</Label>
               <Input
                 id="language-search"
-                placeholder="Search by name..."
+                placeholder={t('common.search')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full"
@@ -120,7 +126,7 @@ export function LanguagePreferences() {
 
             {/* Language Selector */}
             <div className="space-y-3">
-              <Label htmlFor="language-select">Select Language</Label>
+              <Label htmlFor="language-select">{t('language.select')}</Label>
               <Select value={selectedLanguage} onValueChange={handleLanguageChange}>
                 <SelectTrigger id="language-select" className="w-full">
                   <SelectValue>
@@ -146,7 +152,7 @@ export function LanguagePreferences() {
 
             {/* Language Grid Display */}
             <div className="space-y-3">
-              <Label>Quick Select</Label>
+              <Label>{t('language.quickSelect')}</Label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {indianLanguages.slice(0, 6).map((lang) => (
                   <button
@@ -169,12 +175,10 @@ export function LanguagePreferences() {
             <div className="rounded-lg bg-muted/50 p-4 space-y-2">
               <h4 className="font-medium text-sm flex items-center gap-2">
                 <Globe className="h-4 w-4" />
-                Language Support
+                {t('language.support')}
               </h4>
               <p className="text-xs text-muted-foreground">
-                Focus Flow supports all {indianLanguages.length} official and widely-spoken Indian languages. 
-                Your selected language will be saved and applied across the app. UI translations are 
-                being progressively added for all supported languages.
+                {t('language.supportDescription', { count: indianLanguages.length })}
               </p>
             </div>
           </CardContent>
