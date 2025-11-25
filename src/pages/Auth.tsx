@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Fingerprint } from 'lucide-react';
+import { useBiometricAuth } from '@/hooks/useBiometricAuth';
+import { Separator } from '@/components/ui/separator';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -14,6 +16,46 @@ export default function Auth() {
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
   const { signIn, signUp } = useAuth();
+  const { isAvailable, isEnabled, authenticate, getBiometryName } = useBiometricAuth();
+  const [showBiometricButton, setShowBiometricButton] = useState(false);
+
+  useEffect(() => {
+    // Check if user has stored credentials and biometric is enabled
+    const storedEmail = localStorage.getItem('last_login_email');
+    if (isLogin && isAvailable && isEnabled && storedEmail) {
+      setEmail(storedEmail);
+      setShowBiometricButton(true);
+    }
+  }, [isLogin, isAvailable, isEnabled]);
+
+  const handleBiometricLogin = async () => {
+    const storedEmail = localStorage.getItem('last_login_email');
+    const storedPassword = localStorage.getItem('last_login_password');
+
+    if (!storedEmail || !storedPassword) {
+      toast.error('No saved credentials found');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const authenticated = await authenticate(`Sign in with ${getBiometryName()}`);
+      
+      if (authenticated) {
+        const { error } = await signIn(storedEmail, storedPassword);
+        if (error) {
+          toast.error(error.message || 'Failed to sign in');
+        } else {
+          toast.success('Welcome back!');
+        }
+      } else {
+        toast.error('Authentication failed');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +73,9 @@ export default function Auth() {
         if (error) {
           toast.error(error.message || 'Failed to sign in');
         } else {
+          // Store credentials for biometric auth (in production, use secure storage)
+          localStorage.setItem('last_login_email', email);
+          localStorage.setItem('last_login_password', password);
           toast.success('Welcome back!');
         }
       } else {
@@ -105,6 +150,40 @@ export default function Auth() {
                 disabled={loading}
               />
             </div>
+
+            {showBiometricButton && isLogin && (
+              <>
+                <Button
+                  type="button"
+                  onClick={handleBiometricLogin}
+                  className="w-full gradient-primary text-white shadow-lg transition-all hover:shadow-xl disabled:opacity-50"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Authenticating...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Fingerprint className="h-5 w-5" />
+                      Sign in with {getBiometryName()}
+                    </span>
+                  )}
+                </Button>
+
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <Separator className="w-full" />
+                  </div>
+                  <div className="relative flex justify-center text-xs uppercase">
+                    <span className="bg-white px-2 text-muted-foreground glass-card">
+                      Or continue with email
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
 
             <Button
               type="submit"
