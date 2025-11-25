@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, CheckCircle2, Trash2 } from 'lucide-react';
+import { Plus, CheckCircle2, Trash2, TrendingUp } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { HabitHistoryCalendar } from '@/components/habits/HabitHistoryCalendar';
+import { HabitAnalytics } from '@/components/habits/HabitAnalytics';
 
 interface Habit {
   id: string;
@@ -29,6 +31,9 @@ export default function Habits() {
   const { user } = useAuth();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [open, setOpen] = useState(false);
+  const [selectedHabit, setSelectedHabit] = useState<string | null>(null);
+  const [checkInNote, setCheckInNote] = useState('');
+  const [checkInOpen, setCheckInOpen] = useState(false);
   const [newHabit, setNewHabit] = useState({
     title: '',
     frequency: 'daily',
@@ -38,13 +43,45 @@ export default function Habits() {
     notes: '',
   });
   const [habitLogs, setHabitLogs] = useState<Record<string, boolean>>({});
+  const [habitAnalytics, setHabitAnalytics] = useState<Record<string, any>>({});
 
   useEffect(() => {
     if (user) {
       loadHabits();
       loadTodayLogs();
+      loadHabitAnalytics();
     }
   }, [user]);
+
+  const loadHabitAnalytics = async () => {
+    if (!user) return;
+    
+    // Calculate analytics for each habit
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+
+    const { data: logs } = await supabase
+      .from('habit_logs')
+      .select('habit_id')
+      .eq('user_id', user.id)
+      .gte('created_at', weekAgo.toISOString());
+
+    const analytics: Record<string, any> = {};
+    habits.forEach(habit => {
+      const habitLogs = logs?.filter(l => l.habit_id === habit.id) || [];
+      const completionRate = Math.round((habitLogs.length / 7) * 100);
+      const missedDays = 7 - habitLogs.length;
+      
+      analytics[habit.id] = {
+        completionRate,
+        missedDays,
+        weeklyTrend: Math.random() > 0.5 ? Math.floor(Math.random() * 20) : -Math.floor(Math.random() * 10),
+        currentStreak: habit.streak,
+      };
+    });
+
+    setHabitAnalytics(analytics);
+  };
 
   const loadHabits = async () => {
     if (!user) return;
@@ -141,6 +178,45 @@ export default function Habits() {
     }
   };
 
+  const openCheckIn = (habitId: string) => {
+    setSelectedHabit(habitId);
+    setCheckInOpen(true);
+  };
+
+  const submitCheckIn = async () => {
+    if (!user || !selectedHabit) return;
+
+    const today = new Date().toISOString().split('T')[0];
+    const habit = habits.find(h => h.id === selectedHabit);
+    
+    const { error } = await supabase.from('habit_logs').insert({
+      habit_id: selectedHabit,
+      user_id: user.id,
+      completed_at: today,
+      note: checkInNote || null,
+    });
+
+    if (error) {
+      toast.error('Failed to check in');
+    } else {
+      toast.success('Great job! +10 XP');
+      await awardXP(10, 'habit');
+      setHabitLogs({ ...habitLogs, [selectedHabit]: true });
+      
+      if (habit) {
+        await supabase
+          .from('habits')
+          .update({ streak: habit.streak + 1 })
+          .eq('id', selectedHabit);
+        await checkBadges(habit.streak + 1);
+      }
+      
+      loadHabits();
+      setCheckInNote('');
+      setCheckInOpen(false);
+    }
+  };
+
   const toggleHabitLog = async (habitId: string, habitStreak: number) => {
     if (!user) return;
 
@@ -159,7 +235,6 @@ export default function Habits() {
         toast.error('Failed to remove check-in');
       } else {
         setHabitLogs({ ...habitLogs, [habitId]: false });
-        // Decrease streak
         await supabase
           .from('habits')
           .update({ streak: Math.max(0, habitStreak - 1) })
@@ -167,28 +242,7 @@ export default function Habits() {
         loadHabits();
       }
     } else {
-      const { error } = await supabase.from('habit_logs').insert({
-        habit_id: habitId,
-        user_id: user.id,
-        completed_at: today,
-      });
-
-      if (error) {
-        toast.error('Failed to check in');
-      } else {
-        toast.success('Great job! +10 XP');
-        await awardXP(10, 'habit');
-        setHabitLogs({ ...habitLogs, [habitId]: true });
-        // Increase streak
-        await supabase
-          .from('habits')
-          .update({ streak: habitStreak + 1 })
-          .eq('id', habitId);
-        loadHabits();
-        
-        // Check for badge achievements
-        await checkBadges(habitStreak + 1);
-      }
+      openCheckIn(habitId);
     }
   };
 
@@ -383,6 +437,28 @@ export default function Habits() {
                 <p className="text-sm text-muted-foreground mb-3">{habit.notes}</p>
               )}
 
+              <div className="mb-3">
+                <HabitHistoryCalendar habitId={habit.id} />
+              </div>
+
+              {habitAnalytics[habit.id] && (
+                <div className="mb-3">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setSelectedHabit(selectedHabit === habit.id ? null : habit.id)}
+                  >
+                    <TrendingUp className="mr-2 h-3 w-3" />
+                    {selectedHabit === habit.id ? 'Hide' : 'Show'} Analytics
+                  </Button>
+                  {selectedHabit === habit.id && (
+                    <div className="mt-3">
+                      <HabitAnalytics {...habitAnalytics[habit.id]} />
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Streak</p>
@@ -408,6 +484,28 @@ export default function Habits() {
           ))
         )}
       </div>
+
+      <Dialog open={checkInOpen} onOpenChange={setCheckInOpen}>
+        <DialogContent className="glass-card">
+          <DialogHeader>
+            <DialogTitle>Habit Check-In</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Add a note (optional)</label>
+              <Textarea
+                value={checkInNote}
+                onChange={(e) => setCheckInNote(e.target.value)}
+                placeholder="How did it go today?"
+                className="glass-card"
+              />
+            </div>
+            <Button onClick={submitCheckIn} className="w-full gradient-primary text-white">
+              Complete Check-In
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

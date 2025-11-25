@@ -8,6 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { TagFilter } from '@/components/tasks/TagFilter';
+import { RecurringRuleSelector } from '@/components/tasks/RecurringRuleSelector';
+import { FileAttachmentUpload } from '@/components/tasks/FileAttachmentUpload';
+import { DraggableKanban } from '@/components/tasks/DraggableKanban';
 
 interface Task {
   id: string;
@@ -23,6 +27,7 @@ interface Task {
   time_estimate: number | null;
   board_status: string;
   completed_at: string | null;
+  attachments?: string[];
 }
 
 interface Subtask {
@@ -47,15 +52,28 @@ export default function Tasks() {
     category: '',
     timeEstimate: 0,
     tags: [] as string[],
+    recurringRule: null as string | null,
+    attachments: [] as string[],
   });
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const [expandedTask, setExpandedTask] = useState<string | null>(null);
+  const [allTags, setAllTags] = useState<string[]>([]);
+  const [selectedTagFilter, setSelectedTagFilter] = useState<string[]>([]);
 
   useEffect(() => {
     if (user) {
       loadTasks();
+      loadAllTags();
     }
   }, [user]);
+
+  const loadAllTags = async () => {
+    if (!user) return;
+    const { data } = await supabase.from('tasks').select('tags').eq('user_id', user.id);
+    const tags = new Set<string>();
+    data?.forEach(task => task.tags?.forEach((tag: string) => tags.add(tag)));
+    setAllTags(Array.from(tags));
+  };
 
   const loadTasks = async () => {
     if (!user) return;
@@ -106,6 +124,8 @@ export default function Tasks() {
       time_estimate: newTask.timeEstimate || null,
       tags: newTask.tags,
       board_status: 'todo',
+      recurring_rule: newTask.recurringRule,
+      attachments: newTask.attachments,
     }).select();
 
     if (error) {
@@ -113,9 +133,10 @@ export default function Tasks() {
     } else {
       toast.success('Task created! +10 XP');
       await awardXP(10, 'task');
-      setNewTask({ title: '', description: '', scheduledOn: '', priority: 'medium', category: '', timeEstimate: 0, tags: [] });
+      setNewTask({ title: '', description: '', scheduledOn: '', priority: 'medium', category: '', timeEstimate: 0, tags: [], recurringRule: null, attachments: [] });
       setOpen(false);
       loadTasks();
+      loadAllTags();
     }
   };
 
@@ -236,67 +257,12 @@ export default function Tasks() {
   };
 
   const renderKanbanView = () => {
-    const columns = [
-      { id: 'todo', title: 'To Do', tasks: tasks.filter(t => t.board_status === 'todo') },
-      { id: 'in_progress', title: 'In Progress', tasks: tasks.filter(t => t.board_status === 'in_progress') },
-      { id: 'done', title: 'Done', tasks: tasks.filter(t => t.board_status === 'done') },
-    ];
-
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {columns.map((column) => (
-          <div key={column.id} className="flex flex-col">
-            <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-              {column.title}
-              <span className="text-sm bg-primary/20 px-2 py-1 rounded">{column.tasks.length}</span>
-            </h3>
-            <div className="space-y-3 flex-1">
-              {column.tasks.map((task) => (
-                <motion.div
-                  key={task.id}
-                  layout
-                  className="glass-card rounded-xl p-4 cursor-pointer hover:shadow-lg transition-all"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <h4 className="font-semibold">{task.title}</h4>
-                    <div className="flex gap-1">
-                      {column.id !== 'todo' && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => moveTask(task.id, 'todo')}
-                        >
-                          ←
-                        </Button>
-                      )}
-                      {column.id !== 'done' && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => moveTask(task.id, column.id === 'todo' ? 'in_progress' : 'done')}
-                        >
-                          →
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                  {task.description && (
-                    <p className="text-sm text-muted-foreground mb-2">{task.description}</p>
-                  )}
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className={`px-2 py-1 rounded border ${getPriorityColor(task.priority)}`}>
-                      {task.priority}
-                    </span>
-                    {task.category && (
-                      <span className="px-2 py-1 rounded bg-muted">{task.category}</span>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+      <DraggableKanban
+        tasks={tasks}
+        onMoveTask={moveTask}
+        getPriorityColor={getPriorityColor}
+      />
     );
   };
 
@@ -397,6 +363,32 @@ export default function Tasks() {
                   className="glass-card"
                 />
               </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Tags</label>
+                <TagFilter
+                  tags={allTags}
+                  selectedTags={newTask.tags}
+                  onTagsChange={(tags) => setNewTask({ ...newTask, tags })}
+                  onAddTag={(tag) => {
+                    setAllTags([...allTags, tag]);
+                    setNewTask({ ...newTask, tags: [...newTask.tags, tag] });
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Recurring</label>
+                <RecurringRuleSelector
+                  value={newTask.recurringRule}
+                  onChange={(rule) => setNewTask({ ...newTask, recurringRule: rule })}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Attachments</label>
+                <FileAttachmentUpload
+                  attachments={newTask.attachments}
+                  onAttachmentsChange={(attachments) => setNewTask({ ...newTask, attachments })}
+                />
+              </div>
               <Button onClick={createTask} className="w-full gradient-primary text-white">
                 Create Task
               </Button>
@@ -409,8 +401,26 @@ export default function Tasks() {
       {viewMode === 'kanban' ? (
         renderKanbanView()
       ) : (
-        <div className="grid gap-4">
-          {tasks.length === 0 ? (
+        <div className="space-y-4">
+          {selectedTagFilter.length > 0 && (
+            <div className="glass-card rounded-xl p-4">
+              <h3 className="text-sm font-medium mb-2">Filter by Tags</h3>
+              <TagFilter
+                tags={allTags}
+                selectedTags={selectedTagFilter}
+                onTagsChange={setSelectedTagFilter}
+                onAddTag={() => {}}
+              />
+            </div>
+          )}
+
+          <div className="grid gap-4">
+            {tasks
+              .filter(task => 
+                selectedTagFilter.length === 0 || 
+                task.tags?.some(tag => selectedTagFilter.includes(tag))
+              )
+              .length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -418,8 +428,13 @@ export default function Tasks() {
             >
               <p className="text-muted-foreground">No tasks yet. Create your first task to get started!</p>
             </motion.div>
-          ) : (
-            tasks.map((task, index) => (
+            ) : (
+              tasks
+                .filter(task => 
+                  selectedTagFilter.length === 0 || 
+                  task.tags?.some(tag => selectedTagFilter.includes(tag))
+                )
+                .map((task, index) => (
               <motion.div
                 key={task.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -467,6 +482,20 @@ export default function Tasks() {
                       {task.time_estimate && (
                         <div className="mt-1 text-xs text-muted-foreground">
                           Estimated: {task.time_estimate} min
+                        </div>
+                      )}
+                      {task.tags && task.tags.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {task.tags.map(tag => (
+                            <span key={tag} className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {task.recurring_rule && (
+                        <div className="mt-1 text-xs text-muted-foreground">
+                          🔄 {task.recurring_rule.replace('_', ' ')}
                         </div>
                       )}
                       
@@ -523,10 +552,11 @@ export default function Tasks() {
                   </Button>
                 </div>
               </motion.div>
-            ))
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
