@@ -15,9 +15,11 @@ import { AdvancedThemeCustomization } from '@/components/profile/AdvancedThemeCu
 import { ProductivityInsightsDashboard } from '@/components/profile/ProductivityInsightsDashboard';
 import { PrivacyDataControls } from '@/components/profile/PrivacyDataControls';
 import { LanguagePreferences } from '@/components/profile/LanguagePreferences';
+import { useTranslation } from 'react-i18next';
 
 export default function Profile() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const { isAvailable, isEnabled, enableBiometricAuth, disableBiometricAuth, getBiometryName } = useBiometricAuth();
@@ -160,8 +162,8 @@ export default function Profile() {
         animate={{ opacity: 1, y: 0 }}
         className="space-y-2"
       >
-        <h1 className="text-4xl font-bold gradient-text">Profile Settings</h1>
-        <p className="text-muted-foreground">Manage your account and personalization preferences</p>
+        <h1 className="text-4xl font-bold gradient-text">{t('profile.title')}</h1>
+        <p className="text-muted-foreground">{t('profile.subtitle')}</p>
       </motion.div>
 
       <div className="grid gap-6">
@@ -175,18 +177,18 @@ export default function Profile() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Shield className="h-5 w-5" />
-                Level & Progress
+                {t('profile.levelProgress')}
               </CardTitle>
-              <CardDescription>Your productivity achievements</CardDescription>
+              <CardDescription>{t('profile.subtitle')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Level</p>
+                  <p className="text-sm text-muted-foreground">{t('profile.level')}</p>
                   <p className="text-3xl font-bold">{xpData.level}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Total XP</p>
+                  <p className="text-sm text-muted-foreground">{t('profile.totalXP')}</p>
                   <p className="text-2xl font-bold">{xpData.total_xp}</p>
                 </div>
               </div>
@@ -207,17 +209,17 @@ export default function Profile() {
               <div className="grid grid-cols-2 gap-4 pt-2">
                 <div className="text-center p-3 rounded-lg bg-muted/50">
                   <p className="text-2xl font-bold">{xpData.tasks_completed}</p>
-                  <p className="text-xs text-muted-foreground">Tasks Completed</p>
+                  <p className="text-xs text-muted-foreground">{t('profile.tasksCompleted')}</p>
                 </div>
                 <div className="text-center p-3 rounded-lg bg-muted/50">
                   <p className="text-2xl font-bold">{xpData.habits_completed}</p>
-                  <p className="text-xs text-muted-foreground">Habits Completed</p>
+                  <p className="text-xs text-muted-foreground">{t('profile.habitsCompleted')}</p>
                 </div>
               </div>
 
               {badges.length > 0 && (
                 <div>
-                  <p className="text-sm font-medium mb-2">Badges Earned</p>
+                  <p className="text-sm font-medium mb-2">{t('profile.badgesEarned')}</p>
                   <div className="flex flex-wrap gap-2">
                     {badges.map((badge) => (
                       <div
@@ -244,22 +246,22 @@ export default function Profile() {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <User className="h-5 w-5 text-primary" />
-                <CardTitle>Personal Information</CardTitle>
+                <CardTitle>{t('profile.personalInfo')}</CardTitle>
               </div>
-              <CardDescription>Update your basic account details</CardDescription>
+              <CardDescription>{t('profile.subtitle')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">{t('profile.name')}</Label>
                 <Input
                   id="name"
                   value={formData.name}
                   onChange={(e) => handleChange('name', e.target.value)}
-                  placeholder="Your name"
+                  placeholder={t('profile.name')}
                 />
               </div>
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t('profile.email')}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -282,13 +284,13 @@ export default function Profile() {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-primary" />
-                <CardTitle>Productivity Goals</CardTitle>
+                <CardTitle>{t('profile.productivityGoals')}</CardTitle>
               </div>
-              <CardDescription>Set your daily focus targets</CardDescription>
+              <CardDescription>{t('profile.subtitle')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="focus-goal">Daily Focus Goal (minutes)</Label>
+                <Label htmlFor="focus-goal">{t('profile.dailyFocusGoal')}</Label>
                 <Input
                   id="focus-goal"
                   type="number"
@@ -299,7 +301,7 @@ export default function Profile() {
                 />
               </div>
               <div>
-                <Label htmlFor="scroll-limit">Scroll Limit per Session (minutes)</Label>
+                <Label htmlFor="scroll-limit">{t('profile.scrollLimit')}</Label>
                 <Select
                   value={formData.scroll_limit.toString()}
                   onValueChange={(value) => handleChange('scroll_limit', parseInt(value))}
@@ -317,7 +319,7 @@ export default function Profile() {
                 </Select>
               </div>
               <div>
-                <Label htmlFor="cool-down">Cool-Down Time (minutes)</Label>
+                <Label htmlFor="cool-down">{t('profile.coolDownTime')}</Label>
                 <Select
                   value={formData.cool_down_time.toString()}
                   onValueChange={(value) => handleChange('cool_down_time', parseInt(value))}
@@ -347,14 +349,14 @@ export default function Profile() {
             <CardHeader>
               <div className="flex items-center gap-2">
                 <Bell className="h-5 w-5 text-primary" />
-                <CardTitle>Notifications & Theme</CardTitle>
+                <CardTitle>{t('profile.notifications')}</CardTitle>
               </div>
-              <CardDescription>Customize your experience</CardDescription>
+              <CardDescription>{t('profile.subtitle')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label>Enable Notifications</Label>
+                  <Label>{t('profile.enableNotifications')}</Label>
                   <p className="text-sm text-muted-foreground">Receive focus reminders</p>
                 </div>
                 <Switch
@@ -364,7 +366,7 @@ export default function Profile() {
               </div>
               {formData.notification_enabled && (
                 <div>
-                  <Label htmlFor="notification-freq">Reminder Frequency</Label>
+                  <Label htmlFor="notification-freq">{t('profile.notificationFrequency')}</Label>
                   <Select
                     value={formData.notification_frequency.toString()}
                     onValueChange={(value) => handleChange('notification_frequency', parseInt(value))}
@@ -381,7 +383,7 @@ export default function Profile() {
                 </div>
               )}
               <div>
-                <Label htmlFor="theme">Theme</Label>
+                <Label htmlFor="theme">{t('profile.theme')}</Label>
                 <Select
                   value={formData.theme}
                   onValueChange={(value) => handleChange('theme', value)}
@@ -408,21 +410,23 @@ export default function Profile() {
             transition={{ delay: 0.35 }}
           >
             <Card className="glass-card">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Fingerprint className="h-5 w-5 text-primary" />
-                  <CardTitle>Biometric Authentication</CardTitle>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Fingerprint className="h-5 w-5 text-primary" />
+                <CardTitle>{t('profile.biometric')}</CardTitle>
+              </div>
+              <CardDescription>
+                {t('profile.biometricDescription', { type: getBiometryName() })}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label>{t('profile.enableBiometric', { type: getBiometryName() })}</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {t('profile.biometricDescription', { type: getBiometryName() })}
+                  </p>
                 </div>
-                <CardDescription>Secure your app with {getBiometryName()}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label>Enable {getBiometryName()}</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Use {getBiometryName()} to quickly and securely sign in
-                    </p>
-                  </div>
                   <Switch
                     checked={isEnabled}
                     onCheckedChange={async (checked) => {
@@ -512,7 +516,7 @@ export default function Profile() {
           className="gap-2"
         >
           <Save className="h-4 w-4" />
-          {loading ? 'Saving...' : 'Save Changes'}
+          {loading ? t('profile.saving') : t('profile.saveChanges')}
         </Button>
       </motion.div>
 
@@ -522,7 +526,7 @@ export default function Profile() {
           animate={{ opacity: 1 }}
           className="text-sm text-muted-foreground text-center"
         >
-          You have unsaved changes
+          {t('profile.unsavedChanges')}
         </motion.p>
       )}
     </div>

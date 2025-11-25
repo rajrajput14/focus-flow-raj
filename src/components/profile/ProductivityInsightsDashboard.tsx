@@ -6,6 +6,7 @@ import { ChevronDown } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Progress } from '@/components/ui/progress';
+import { useTranslation } from 'react-i18next';
 
 interface TaskData {
   date: string;
@@ -19,6 +20,7 @@ interface FocusSession {
 
 export function ProductivityInsightsDashboard() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [taskTrend, setTaskTrend] = useState<TaskData[]>([]);
   const [habitConsistency, setHabitConsistency] = useState(0);
@@ -137,13 +139,13 @@ export function ProductivityInsightsDashboard() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-primary" />
-                <CardTitle>Productivity Insights</CardTitle>
+                <CardTitle>{t('insights.title')}</CardTitle>
               </div>
               <ChevronDown
                 className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''}`}
               />
             </div>
-            <CardDescription>Your 7-day productivity analytics</CardDescription>
+            <CardDescription>{t('insights.description')}</CardDescription>
           </CardHeader>
         </CollapsibleTrigger>
         
@@ -153,7 +155,7 @@ export function ProductivityInsightsDashboard() {
             <div className="space-y-3">
               <h4 className="font-medium flex items-center gap-2">
                 <Target className="h-4 w-4" />
-                Weekly Task Completion
+                {t('insights.weeklyTasks')}
               </h4>
               <div className="flex items-end justify-between gap-2 h-32">
                 {taskTrend.map((day, idx) => (
@@ -175,7 +177,7 @@ export function ProductivityInsightsDashboard() {
             <div className="space-y-3">
               <h4 className="font-medium flex items-center gap-2">
                 <Flame className="h-4 w-4" />
-                Habit Consistency
+                {t('insights.habitConsistency')}
               </h4>
               <div className="flex items-center gap-4">
                 <div className="relative w-24 h-24">
@@ -206,7 +208,7 @@ export function ProductivityInsightsDashboard() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">
-                    You completed habits on {Math.round(habitConsistency / 100 * 7)} out of 7 days
+                    {t('insights.completedHabits', { count: Math.round(habitConsistency / 100 * 7) })}
                   </p>
                 </div>
               </div>
@@ -214,7 +216,7 @@ export function ProductivityInsightsDashboard() {
 
             {/* Focus Session Heatmap */}
             <div className="space-y-3">
-              <h4 className="font-medium">Focus Session Heatmap (Last 7 Days)</h4>
+              <h4 className="font-medium">{t('insights.focusHeatmap')}</h4>
               <div className="grid grid-cols-7 gap-1">
                 {Array.from({ length: 7 }).map((_, dayIdx) => {
                   const date = new Date();
@@ -251,19 +253,19 @@ export function ProductivityInsightsDashboard() {
             <div className="grid grid-cols-2 gap-4">
               <div className="p-4 rounded-lg bg-muted/50 space-y-1">
                 <p className="text-2xl font-bold text-primary">{stats.totalFocusMinutes}</p>
-                <p className="text-xs text-muted-foreground">Total Focus Minutes</p>
+                <p className="text-xs text-muted-foreground">{t('insights.totalFocusMinutes')}</p>
               </div>
               <div className="p-4 rounded-lg bg-muted/50 space-y-1">
                 <p className="text-2xl font-bold text-primary">{stats.avgDailyTasks}</p>
-                <p className="text-xs text-muted-foreground">Avg Daily Tasks</p>
+                <p className="text-xs text-muted-foreground">{t('insights.avgDailyTasks')}</p>
               </div>
               <div className="p-4 rounded-lg bg-muted/50 space-y-1">
                 <p className="text-2xl font-bold text-primary">{stats.bestFocusDay}</p>
-                <p className="text-xs text-muted-foreground">Best Focus Day</p>
+                <p className="text-xs text-muted-foreground">{t('insights.bestFocusDay')}</p>
               </div>
               <div className="p-4 rounded-lg bg-muted/50 space-y-1">
                 <p className="text-2xl font-bold text-primary">{stats.bestHabitStreak}</p>
-                <p className="text-xs text-muted-foreground">Best Habit Streak</p>
+                <p className="text-xs text-muted-foreground">{t('insights.bestHabitStreak')}</p>
               </div>
             </div>
           </CardContent>

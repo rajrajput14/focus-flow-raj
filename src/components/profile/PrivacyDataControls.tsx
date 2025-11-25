@@ -18,9 +18,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { useTranslation } from 'react-i18next';
 
 export function PrivacyDataControls() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -71,14 +73,14 @@ export function PrivacyDataControls() {
       URL.revokeObjectURL(url);
 
       toast({
-        title: 'Success',
-        description: 'Your data has been exported successfully',
+        title: t('toast.success'),
+        description: t('toast.dataExported'),
       });
     } catch (error) {
       console.error('Export error:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to export data',
+        title: t('toast.error'),
+        description: t('toast.error'),
         variant: 'destructive',
       });
     } finally {
@@ -138,14 +140,14 @@ export function PrivacyDataControls() {
       }
 
       toast({
-        title: 'Success',
-        description: 'Your data has been imported successfully',
+        title: t('toast.success'),
+        description: t('toast.dataImported'),
       });
     } catch (error) {
       console.error('Import error:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to import data. Please check the file format.',
+        title: t('toast.error'),
+        description: t('toast.error'),
         variant: 'destructive',
       });
     } finally {
@@ -166,8 +168,8 @@ export function PrivacyDataControls() {
     keysToRemove.forEach(key => localStorage.removeItem(key));
 
     toast({
-      title: 'Success',
-      description: 'Local app data has been cleared',
+      title: t('toast.success'),
+      description: t('toast.localDataCleared'),
     });
   };
 
@@ -179,13 +181,13 @@ export function PrivacyDataControls() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Shield className="h-5 w-5 text-primary" />
-                <CardTitle>Privacy & Data Controls</CardTitle>
+                <CardTitle>{t('privacy.title')}</CardTitle>
               </div>
               <ChevronDown
                 className={`h-5 w-5 transition-transform ${isOpen ? 'rotate-180' : ''}`}
               />
             </div>
-            <CardDescription>Manage your data and privacy settings</CardDescription>
+            <CardDescription>{t('privacy.description')}</CardDescription>
           </CardHeader>
         </CollapsibleTrigger>
         
@@ -196,10 +198,10 @@ export function PrivacyDataControls() {
               <div className="flex-1">
                 <h4 className="font-medium flex items-center gap-2">
                   <Download className="h-4 w-4" />
-                  Export My Data
+                  {t('privacy.exportTitle')}
                 </h4>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Download all your tasks, habits, notes, and settings as JSON
+                  {t('privacy.exportDescription')}
                 </p>
               </div>
               <Button
@@ -208,7 +210,7 @@ export function PrivacyDataControls() {
                 variant="outline"
                 className="ml-4"
               >
-                {loading ? 'Exporting...' : 'Export'}
+                {loading ? t('common.loading') : t('common.export')}
               </Button>
             </div>
 
@@ -217,10 +219,10 @@ export function PrivacyDataControls() {
               <div className="flex-1">
                 <h4 className="font-medium flex items-center gap-2">
                   <Upload className="h-4 w-4" />
-                  Import Backup
+                  {t('privacy.importTitle')}
                 </h4>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Restore data from a previous backup file
+                  {t('privacy.importDescription')}
                 </p>
               </div>
               <Button
@@ -229,7 +231,7 @@ export function PrivacyDataControls() {
                 onClick={() => document.getElementById('import-file')?.click()}
                 disabled={loading}
               >
-                {loading ? 'Importing...' : 'Import'}
+                {loading ? t('common.loading') : t('common.import')}
               </Button>
               <input
                 id="import-file"
