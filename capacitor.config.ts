@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.513c206da9fa4794b9a4647cf01d5f63',
+  appId: 'com.focusflow.app',
   appName: 'Focus Flow',
   webDir: 'dist',
   server: {
