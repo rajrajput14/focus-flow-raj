@@ -154,6 +154,13 @@ When you're ready to publish to app stores, you need to switch from hot-reload t
 
 ## Testing Mobile Features
 
+### Biometric Authentication
+- Face ID, Touch ID, and Fingerprint authentication are now supported
+- After your first login, go to Profile settings to enable biometric auth
+- Once enabled, you can sign in using your device's biometric sensor
+- Works on iOS (Face ID/Touch ID) and Android (Fingerprint)
+- Credentials are stored securely for quick biometric sign-in
+
 ### Push Notifications
 - Notifications are automatically requested on first app launch
 - Test by completing tasks or creating habits

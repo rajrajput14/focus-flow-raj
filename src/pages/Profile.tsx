@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { User, Bell, Palette, Shield, Save } from 'lucide-react';
+import { User, Bell, Palette, Shield, Save, Fingerprint } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -10,11 +10,13 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useBiometricAuth } from '@/hooks/useBiometricAuth';
 
 export default function Profile() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const { isAvailable, isEnabled, enableBiometricAuth, disableBiometricAuth, getBiometryName } = useBiometricAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -393,6 +395,68 @@ export default function Profile() {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Biometric Authentication */}
+        {isAvailable && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35 }}
+          >
+            <Card className="glass-card">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Fingerprint className="h-5 w-5 text-primary" />
+                  <CardTitle>Biometric Authentication</CardTitle>
+                </div>
+                <CardDescription>Secure your app with {getBiometryName()}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Enable {getBiometryName()}</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Use {getBiometryName()} to quickly and securely sign in
+                    </p>
+                  </div>
+                  <Switch
+                    checked={isEnabled}
+                    onCheckedChange={async (checked) => {
+                      if (checked) {
+                        const success = await enableBiometricAuth();
+                        if (success) {
+                          toast({
+                            title: 'Success',
+                            description: `${getBiometryName()} enabled successfully`,
+                          });
+                        } else {
+                          toast({
+                            title: 'Error',
+                            description: `Failed to enable ${getBiometryName()}`,
+                            variant: 'destructive',
+                          });
+                        }
+                      } else {
+                        disableBiometricAuth();
+                        toast({
+                          title: 'Disabled',
+                          description: `${getBiometryName()} has been disabled`,
+                        });
+                      }
+                    }}
+                  />
+                </div>
+                {isEnabled && (
+                  <div className="rounded-lg bg-primary/10 p-3 border border-primary/20">
+                    <p className="text-sm text-primary">
+                      ✓ {getBiometryName()} is enabled. You can now sign in using biometric authentication.
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
       </div>
 
       <motion.div
