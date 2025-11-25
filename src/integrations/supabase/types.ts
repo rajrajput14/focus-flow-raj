@@ -47,6 +47,39 @@ export type Database = {
         }
         Relationships: []
       }
+      focus_sessions: {
+        Row: {
+          break_events: number | null
+          created_at: string
+          duration: number | null
+          end_time: string | null
+          id: string
+          session_type: string
+          start_time: string
+          user_id: string
+        }
+        Insert: {
+          break_events?: number | null
+          created_at?: string
+          duration?: number | null
+          end_time?: string | null
+          id?: string
+          session_type?: string
+          start_time: string
+          user_id: string
+        }
+        Update: {
+          break_events?: number | null
+          created_at?: string
+          duration?: number | null
+          end_time?: string | null
+          id?: string
+          session_type?: string
+          start_time?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       habit_logs: {
         Row: {
           completed_at: string
@@ -159,21 +192,66 @@ export type Database = {
       }
       profiles: {
         Row: {
+          blocked_apps: string[] | null
+          cool_down_time: number | null
           created_at: string | null
+          daily_focus_goal: number | null
           id: string
           name: string | null
+          notification_enabled: boolean | null
+          notification_frequency: number | null
+          scroll_limit: number | null
+          theme: string | null
           user_id: string
         }
         Insert: {
+          blocked_apps?: string[] | null
+          cool_down_time?: number | null
           created_at?: string | null
+          daily_focus_goal?: number | null
           id?: string
           name?: string | null
+          notification_enabled?: boolean | null
+          notification_frequency?: number | null
+          scroll_limit?: number | null
+          theme?: string | null
           user_id: string
         }
         Update: {
+          blocked_apps?: string[] | null
+          cool_down_time?: number | null
           created_at?: string | null
+          daily_focus_goal?: number | null
           id?: string
           name?: string | null
+          notification_enabled?: boolean | null
+          notification_frequency?: number | null
+          scroll_limit?: number | null
+          theme?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      scroll_breaks: {
+        Row: {
+          created_at: string
+          id: string
+          reason: string | null
+          timestamp: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reason?: string | null
+          timestamp?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reason?: string | null
+          timestamp?: string
           user_id?: string
         }
         Relationships: []
