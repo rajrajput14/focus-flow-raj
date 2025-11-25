@@ -15,6 +15,15 @@ const config: CapacitorConfig = {
     LocalNotifications: {
       smallIcon: 'ic_stat_icon_config_sample',
       iconColor: '#8B5CF6'
+    },
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: '#000000',
+      showSpinner: false,
+      androidSplashResourceName: 'splash',
+      iosSpinnerStyle: 'small',
+      splashFullScreen: true,
+      splashImmersive: true
     }
   }
 };

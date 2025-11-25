@@ -1,4 +1,6 @@
-# Focus Flow - Mobile App Setup Guide
+# Focus Flow - Mobile App Setup Guide (Development Mode)
+
+> **Note:** This guide is for DEVELOPMENT mode with hot-reload. For PRODUCTION builds, see [PRODUCTION_BUILD.md](./PRODUCTION_BUILD.md)
 
 Your Focus Flow app has been converted to a native mobile app using Capacitor! 🎉
 
@@ -155,11 +157,47 @@ When you're ready to publish to app stores, you need to switch from hot-reload t
 ## Testing Mobile Features
 
 ### Biometric Authentication
-- Face ID, Touch ID, and Fingerprint authentication are now supported
-- After your first login, go to Profile settings to enable biometric auth
-- Once enabled, you can sign in using your device's biometric sensor
-- Works on iOS (Face ID/Touch ID) and Android (Fingerprint)
-- Credentials are stored securely for quick biometric sign-in
+
+The app now supports **automatic biometric authentication** on app launch:
+
+**How It Works:**
+
+1. **First Time Setup:**
+   - Launch the app and sign in with email/password
+   - Go to Profile → Biometric Authentication
+   - Toggle "Enable Biometric Login" and authenticate
+   - Your credentials are securely stored locally
+
+2. **Automatic Authentication:**
+   - Close the app completely
+   - Reopen the app
+   - Biometric prompt appears automatically (if enabled)
+   - Authenticate with Face ID/Touch ID/Fingerprint
+   - App unlocks and navigates to dashboard
+
+3. **Failed Authentication:**
+   - If biometric fails or is cancelled
+   - Retry button appears
+   - Option to "Use Password Instead" to go to login screen
+
+4. **Disabling:**
+   - Go to Profile → Biometric Authentication  
+   - Toggle off to disable
+   - App will use normal login flow
+
+**Testing Requirements:**
+
+- ✅ Must test on **physical device** (not simulator)
+- ✅ Device must have biometrics **enrolled** in settings
+- ✅ For iOS: Face ID/Touch ID set up in Settings
+- ✅ For Android: Fingerprint set up in Settings
+
+**Supported Biometric Types:**
+
+- **iOS:** Face ID, Touch ID
+- **Android:** Fingerprint, Face Authentication, Iris Authentication
+
+**Note:** Biometric features do NOT work in web preview or most emulators.
 
 ### Push Notifications
 - Notifications are automatically requested on first app launch
