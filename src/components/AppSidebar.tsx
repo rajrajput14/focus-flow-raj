@@ -6,7 +6,9 @@ import {
   FileText, 
   Timer,
   Sparkles,
-  LogOut
+  LogOut,
+  User,
+  BarChart3
 } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,6 +32,8 @@ const menuItems = [
   { title: 'Notes', url: '/notes', icon: FileText },
   { title: 'Pomodoro', url: '/pomodoro', icon: Timer },
   { title: 'AI Suggestions', url: '/ai', icon: Sparkles },
+  { title: 'Analytics', url: '/analytics', icon: BarChart3 },
+  { title: 'Profile', url: '/profile', icon: User },
 ];
 
 export function AppSidebar() {
