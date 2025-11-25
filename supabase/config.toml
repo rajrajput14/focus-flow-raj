@@ -1,1 +1,19 @@
 project_id = "xafoovzspeqsfawankrv"
+
+[functions.ai-suggestions]
+verify_jwt = true
+
+[functions.nl-task-parser]
+verify_jwt = true
+
+[functions.ai-daily-planner]
+verify_jwt = true
+
+[functions.ai-weekly-review]
+verify_jwt = true
+
+[functions.ai-habit-generator]
+verify_jwt = true
+
+[functions.ai-task-generator]
+verify_jwt = true
