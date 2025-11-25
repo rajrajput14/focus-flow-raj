@@ -7,6 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { VoiceTaskInput } from '@/components/VoiceTaskInput';
+import { AIDailyPlanner } from '@/components/ai/AIDailyPlanner';
+import { AIWeeklyReview } from '@/components/ai/AIWeeklyReview';
+import { AIHabitGenerator } from '@/components/ai/AIHabitGenerator';
+import { AITaskGenerator } from '@/components/ai/AITaskGenerator';
 
 export default function AI() {
   const { user } = useAuth();
@@ -82,6 +86,38 @@ export default function AI() {
         <h1 className="text-4xl font-bold gradient-text">AI Assistant</h1>
         <p className="text-muted-foreground">Let AI help you stay productive</p>
       </motion.div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+        >
+          <AIDailyPlanner />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+        >
+          <AIWeeklyReview />
+        </motion.div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+        >
+          <AIHabitGenerator />
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+        >
+          <AITaskGenerator />
+        </motion.div>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <motion.div

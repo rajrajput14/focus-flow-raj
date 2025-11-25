@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { TrendingUp, Clock, Zap, Target } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { ProductivityScore } from '@/components/analytics/ProductivityScore';
 import {
   LineChart,
   Line,
@@ -362,25 +363,40 @@ export default function Analytics() {
         </Card>
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
-      >
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle>Predictive Insights</CardTitle>
-            <CardDescription>Based on your activity patterns</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {insights.map((insight, index) => (
-              <p key={index} className="text-sm text-muted-foreground">
-                💡 {insight}
-              </p>
-            ))}
-          </CardContent>
-        </Card>
-      </motion.div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+        >
+          <Card className="glass-card">
+            <CardHeader>
+              <CardTitle>Predictive Insights</CardTitle>
+              <CardDescription>Based on your activity patterns</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {insights.map((insight, index) => (
+                <p key={index} className="text-sm text-muted-foreground">
+                  💡 {insight}
+                </p>
+              ))}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+        >
+          <ProductivityScore
+            score={Math.round((stats.totalFocusHours / 10 + stats.currentStreak * 2 + (dailyData.length > 0 ? 30 : 0)))}
+            taskCompletion={dailyData.reduce((sum, d) => sum + d.tasks, 0) > 0 ? 75 : 0}
+            habitConsistency={dailyData.reduce((sum, d) => sum + d.habits, 0) > 0 ? 80 : 0}
+            focusRegularity={stats.totalFocusHours > 0 ? 85 : 0}
+          />
+        </motion.div>
+      </div>
     </div>
   );
 }

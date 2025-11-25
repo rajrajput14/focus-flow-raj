@@ -86,6 +86,7 @@ export type Database = {
           created_at: string | null
           habit_id: string
           id: string
+          note: string | null
           user_id: string
         }
         Insert: {
@@ -93,6 +94,7 @@ export type Database = {
           created_at?: string | null
           habit_id: string
           id?: string
+          note?: string | null
           user_id: string
         }
         Update: {
@@ -100,6 +102,7 @@ export type Database = {
           created_at?: string | null
           habit_id?: string
           id?: string
+          note?: string | null
           user_id?: string
         }
         Relationships: [
@@ -153,25 +156,40 @@ export type Database = {
       }
       notes: {
         Row: {
+          checklist_items: Json | null
           content: string | null
           created_at: string | null
+          folder: string | null
           id: string
+          is_pinned: boolean | null
+          media_attachments: string[] | null
+          note_type: string | null
           title: string
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          checklist_items?: Json | null
           content?: string | null
           created_at?: string | null
+          folder?: string | null
           id?: string
+          is_pinned?: boolean | null
+          media_attachments?: string[] | null
+          note_type?: string | null
           title: string
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          checklist_items?: Json | null
           content?: string | null
           created_at?: string | null
+          folder?: string | null
           id?: string
+          is_pinned?: boolean | null
+          media_attachments?: string[] | null
+          note_type?: string | null
           title?: string
           updated_at?: string | null
           user_id?: string

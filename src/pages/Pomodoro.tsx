@@ -6,14 +6,18 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { AmbientSounds } from '@/components/pomodoro/AmbientSounds';
 
 export default function Pomodoro() {
   const { user } = useAuth();
   const [focusDuration, setFocusDuration] = useState(25);
   const [breakDuration, setBreakDuration] = useState(5);
+  const [longBreakDuration, setLongBreakDuration] = useState(15);
+  const [cyclesPerSession, setCyclesPerSession] = useState(4);
+  const [currentCycle, setCurrentCycle] = useState(1);
   const [timeLeft, setTimeLeft] = useState(focusDuration * 60);
   const [isRunning, setIsRunning] = useState(false);
-  const [sessionType, setSessionType] = useState<'focus' | 'break'>('focus');
+  const [sessionType, setSessionType] = useState<'focus' | 'break' | 'long_break'>('focus');
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -42,9 +46,17 @@ export default function Pomodoro() {
     }
 
     if (sessionType === 'focus') {
-      toast.success('Focus session complete! Time for a break.');
-      setSessionType('break');
-      setTimeLeft(breakDuration * 60);
+      if (currentCycle >= cyclesPerSession) {
+        toast.success('Cycle complete! Time for a long break.');
+        setSessionType('long_break');
+        setTimeLeft(longBreakDuration * 60);
+        setCurrentCycle(1);
+      } else {
+        toast.success('Focus session complete! Time for a short break.');
+        setSessionType('break');
+        setTimeLeft(breakDuration * 60);
+        setCurrentCycle(currentCycle + 1);
+      }
     } else {
       toast.success('Break complete! Ready for another focus session?');
       setSessionType('focus');
@@ -61,10 +73,16 @@ export default function Pomodoro() {
     setTimeLeft(sessionType === 'focus' ? focusDuration * 60 : breakDuration * 60);
   };
 
-  const switchSession = (type: 'focus' | 'break') => {
+  const switchSession = (type: 'focus' | 'break' | 'long_break') => {
     setIsRunning(false);
     setSessionType(type);
-    setTimeLeft(type === 'focus' ? focusDuration * 60 : breakDuration * 60);
+    if (type === 'focus') {
+      setTimeLeft(focusDuration * 60);
+    } else if (type === 'break') {
+      setTimeLeft(breakDuration * 60);
+    } else {
+      setTimeLeft(longBreakDuration * 60);
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -75,7 +93,9 @@ export default function Pomodoro() {
 
   const progress = sessionType === 'focus'
     ? ((focusDuration * 60 - timeLeft) / (focusDuration * 60)) * 100
-    : ((breakDuration * 60 - timeLeft) / (breakDuration * 60)) * 100;
+    : sessionType === 'break'
+    ? ((breakDuration * 60 - timeLeft) / (breakDuration * 60)) * 100
+    : ((longBreakDuration * 60 - timeLeft) / (longBreakDuration * 60)) * 100;
 
   return (
     <div className="space-y-6">
@@ -93,9 +113,14 @@ export default function Pomodoro() {
           animate={{ opacity: 1, scale: 1 }}
           className="glass-card rounded-3xl p-12 text-center"
         >
-          <div className="mb-8 flex justify-center gap-4">
+          <div className="mb-4 text-center text-sm text-muted-foreground">
+            Cycle {currentCycle} / {cyclesPerSession}
+          </div>
+
+          <div className="mb-8 flex justify-center gap-2">
             <Button
               onClick={() => switchSession('focus')}
+              size="sm"
               variant={sessionType === 'focus' ? 'default' : 'outline'}
               className={sessionType === 'focus' ? 'gradient-primary text-white' : ''}
             >
@@ -103,10 +128,19 @@ export default function Pomodoro() {
             </Button>
             <Button
               onClick={() => switchSession('break')}
+              size="sm"
               variant={sessionType === 'break' ? 'default' : 'outline'}
               className={sessionType === 'break' ? 'gradient-primary text-white' : ''}
             >
               Break
+            </Button>
+            <Button
+              onClick={() => switchSession('long_break')}
+              size="sm"
+              variant={sessionType === 'long_break' ? 'default' : 'outline'}
+              className={sessionType === 'long_break' ? 'gradient-primary text-white' : ''}
+            >
+              Long Break
             </Button>
           </div>
 
@@ -205,6 +239,37 @@ export default function Pomodoro() {
                 className="text-center"
               />
             </div>
+            <div className="glass-card rounded-xl p-4">
+              <label className="mb-2 block text-sm text-muted-foreground">Long Break (minutes)</label>
+              <Input
+                type="number"
+                value={longBreakDuration}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value) || 15;
+                  setLongBreakDuration(val);
+                  if (sessionType === 'long_break' && !isRunning) {
+                    setTimeLeft(val * 60);
+                  }
+                }}
+                min="1"
+                className="text-center"
+              />
+            </div>
+            <div className="glass-card rounded-xl p-4">
+              <label className="mb-2 block text-sm text-muted-foreground">Cycles per Session</label>
+              <Input
+                type="number"
+                value={cyclesPerSession}
+                onChange={(e) => setCyclesPerSession(parseInt(e.target.value) || 4)}
+                min="1"
+                max="10"
+                className="text-center"
+              />
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <AmbientSounds />
           </div>
         </motion.div>
       </div>
